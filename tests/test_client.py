@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 
 import httpx
@@ -10,7 +11,13 @@ from trading212_mcp.config import Config
 
 
 def _config(base_url: str = "https://live.trading212.com") -> Config:
-    return Config(api_key="test-key", base_url=base_url, allow_writes=False, timeout_seconds=5.0)
+    return Config(
+        api_key="test-key",
+        api_secret="test-secret",
+        base_url=base_url,
+        allow_writes=False,
+        timeout_seconds=5.0,
+    )
 
 
 def _make_client(handler) -> Trading212Client:
@@ -32,7 +39,8 @@ async def test_sends_auth_header_and_returns_json():
         await client.aclose()
 
     assert result == {"free": 100.0}
-    assert seen["auth"] == "test-key"
+    expected_token = base64.b64encode(b"test-key:test-secret").decode()
+    assert seen["auth"] == f"Basic {expected_token}"
     assert seen["url"].endswith("/api/v0/equity/account/cash")
 
 

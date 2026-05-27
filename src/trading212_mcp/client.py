@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 from typing import Any
 
 import httpx
@@ -37,9 +38,10 @@ class Trading212Client:
 
     def __init__(self, config: Config, transport: httpx.AsyncBaseTransport | None = None):
         self._config = config
+        token = base64.b64encode(f"{config.api_key}:{config.api_secret}".encode()).decode()
         self._client = httpx.AsyncClient(
             base_url=config.base_url,
-            headers={"Authorization": config.api_key},
+            headers={"Authorization": f"Basic {token}"},
             timeout=config.timeout_seconds,
             transport=transport,
         )

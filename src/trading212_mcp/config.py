@@ -22,6 +22,7 @@ class ConfigError(RuntimeError):
 @dataclass(frozen=True)
 class Config:
     api_key: str
+    api_secret: str
     base_url: str
     allow_writes: bool
     timeout_seconds: float
@@ -32,6 +33,7 @@ class Config:
             "allow_writes": self.allow_writes,
             "timeout_seconds": self.timeout_seconds,
             "api_key": "***redacted***",
+            "api_secret": "***redacted***",
         }
 
 
@@ -50,6 +52,13 @@ def load_config(env: dict[str, str] | None = None) -> Config:
         raise ConfigError(
             "TRADING212_API_KEY is not set. Copy .env.example to .env and add your key, "
             "or export it in your shell. Never commit the real value."
+        )
+
+    api_secret = env.get("TRADING212_SECRET_KEY", "").strip()
+    if not api_secret:
+        raise ConfigError(
+            "TRADING212_SECRET_KEY is not set. Trading 212 requires HTTP Basic auth with "
+            "both the API key and secret. Add it to .env or export it in your shell."
         )
 
     base_url_override = env.get("TRADING212_BASE_URL", "").strip()
@@ -75,6 +84,7 @@ def load_config(env: dict[str, str] | None = None) -> Config:
 
     return Config(
         api_key=api_key,
+        api_secret=api_secret,
         base_url=base_url,
         allow_writes=allow_writes,
         timeout_seconds=timeout_seconds,
